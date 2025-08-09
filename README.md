@@ -31,7 +31,8 @@ J3        | 2-pin header, 2.54mm                           | (optional) RX/TX pi
 
 ### PCB
 
-- Gerber files are in [production/](production/) directory
+- Gerber files are in [production](production/) directory (JLCPCB, PCBWay, etc.)
+- Read-to-order PCB at [PCBWay](https://www.pcbway.com/project/shareproject/Zeal_8_bit_to_RCBus_adapter_069f3f1e.html)
 - Schematics in PDF format: [zeal8bit-rcbus.pdf](docs/zeal8bit-rcbus.pdf)
 - KiCad 9.0 project in this directory
 
