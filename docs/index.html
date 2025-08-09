@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z80 I/O Port Mapper Configurator</title>
+    <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .configurator {
+            display: grid;
+            grid-template-columns: 180px 200px 180px;
+            gap: 0px;
+            padding: 20px;
+
+            border-radius: 8px;
+            border: 1px solid #c0c0c0;
+            justify-content: center;
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .column h3 {
+            margin: 0 0 20px 0;
+            font-size: 14px;
+            color: #333;
+            text-align: center;
+            border-bottom: 1px solid #3b3b3b;
+            padding-bottom: 8px;
+        }
+
+        .port-selector {
+            width: 70%;
+            max-width: 120px;
+        }
+
+        .port-selector select {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .binary-display {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 8px;
+            text-align: center;
+            padding: 4px 8px;
+            background: #e9e9eb;
+            border-radius: 4px;
+            letter-spacing: 4px;
+            min-height: 16px;
+        }
+
+        .bit-labels {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 8px;
+            color: #7b929f;
+            text-align: center;
+            padding: 0px;
+            margin: 2px 0px 0px 0px;
+            letter-spacing: 7.5px;
+            padding-left: 4px;
+        }
+
+        .port-selector label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+            text-align: center;
+        }
+
+        .jumpers-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        .jumper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0px;
+            cursor: pointer;
+            padding: 1px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .jumper:hover {
+            background-color: #f3f4f6;
+        }
+
+        .jumper-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            min-width: 25px;
+            display: flex;
+            align-items: center;
+        }
+
+        .jumper-header {
+            position: relative;
+            width: 60px;
+            height: 20px;
+            background: #374151;
+            border-radius: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .jumper-pin {
+            width: 6px;
+            height: 6px;
+            background: #fbbf24;
+            border-radius: 50%;
+            border: 1px solid #d97706;
+        }
+
+        .jumper-cap {
+            position: absolute;
+            width: 24px;
+            height: 14px;
+            background: #f6bb3b;
+            border: 1px solid #000000;
+            border-radius: 3px;
+            top: 2px;
+            transition: left 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+        }
+
+        .jumper-cap.normal {
+            left: 9px;
+        }
+
+        .jumper-cap.inverted {
+            left: 35px;
+        }
+
+        .jumper-position-labels {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+            position: relative;
+            width: 60px;
+            margin: 10px auto 0 auto;
+        }
+
+        .position-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: #374151;
+            position: absolute;
+        }
+
+        .position-label.left {
+            left: 5px;
+        }
+
+        .position-label.right {
+            right: 5px;
+        }
+
+        .pin-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: bold;
+            color: #027109;
+            position: absolute;
+            top: 27px;
+            width: 70px;
+            left: 0px;
+        }
+
+        .pin-labels span {
+            line-height: 1;
+        }
+
+        .pin-labels span.red {
+            color: #8b0000;
+        }
+
+        @media (max-width: 768px) {
+            .configurator {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .column {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>I/O Port Mapper Configurator</h1>
+        <p>
+            for <a href="https://github.com/kolontsov/zeal8bit-rcbus">Zeal 8-bit computer to RCBus adapter</a>
+        </p>
+    </div>
+
+    <div class="configurator">
+        <div class="column">
+            <h3>Source Port</h3>
+            <div class="port-selector">
+                <label for="sourcePort">RCBus board</label>
+                <select id="sourcePort">
+                    <option value="0x00">0x00</option>
+                    <option value="0x10">0x10</option>
+                    <option value="0x20">0x20</option>
+                    <option value="0x30">0x30</option>
+                    <option value="0x40">0x40</option>
+                    <option value="0x50">0x50</option>
+                    <option value="0x60">0x60</option>
+                    <option value="0x70" selected>0x70</option>
+                    <option value="0x80">0x80</option>
+                    <option value="0x90">0x90</option>
+                    <option value="0xA0">0xA0</option>
+                    <option value="0xB0">0xB0</option>
+                    <option value="0xC0">0xC0</option>
+                    <option value="0xD0">0xD0</option>
+                    <option value="0xE0">0xE0</option>
+                    <option value="0xF0">0xF0</option>
+                </select>
+                <div class="binary-display" id="sourceBinary"></div>
+                <div class="bit-labels">76543210</div>
+            </div>
+        </div>
+
+        <div class="column">
+            <h3>Jumper Configuration</h3>
+            <div class="jumpers-container">
+                <div class="jumper" data-jumper="jp1">
+                    <div class="jumper-label">JP1</div>
+                    <div class="jumper-header">
+                        <div class="jumper-pin"></div>
+                        <div class="jumper-pin"></div>
+                        <div class="jumper-pin"></div>
+                        <div class="jumper-cap normal" id="jp1-cap"></div>
+                    </div>
+                    <div class="jumper-label">A7 (0x80)</div>
+                </div>
+
+                <div class="jumper" data-jumper="jp2">
+                    <div class="jumper-label">JP2</div>
+                    <div class="jumper-header">
+                        <div class="jumper-pin"></div>
+                        <div class="jumper-pin"></div>
+                        <div class="jumper-pin"></div>
+                        <div class="jumper-cap normal" id="jp2-cap"></div>
+                    </div>
+                    <div class="jumper-label">A6 (0x40)</div>
+                </div>
+
+                <div class="jumper" data-jumper="jp3">
+                    <div class="jumper-label">JP3</div>
+                    <div class="jumper-header">
+                        <div class="jumper-pin"></div>
+                        <div class="jumper-pin"></div>
+                        <div class="jumper-pin"></div>
+                        <div class="jumper-cap normal" id="jp3-cap"></div>
+                    </div>
+                    <div class="jumper-label">A5 (0x20)</div>
+                </div>
+
+                <div class="jumper" data-jumper="jp4">
+                    <div class="jumper-label">JP4</div>
+                    <div style="position: relative;">
+                        <div class="jumper-header">
+                            <div class="jumper-pin"></div>
+                            <div class="jumper-pin"></div>
+                            <div class="jumper-pin"></div>
+                            <div class="jumper-cap normal" id="jp4-cap"></div>
+                        </div>
+                        <div class="pin-labels" id="jp4-pin-labels">
+                            <span>PASS<br>THRU</span>
+                            <span></span>
+                            <span class="red">INV</span>
+                        </div>
+                    </div>
+                    <div class="jumper-label">A4 (0x10)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="column">
+            <h3>Target Port</h3>
+            <div class="port-selector">
+                <label for="targetPort">Zeal 8-bit</label>
+                <select id="targetPort">
+                    <option value="0x00">0x00</option>
+                    <option value="0x10">0x10</option>
+                    <option value="0x20">0x20</option>
+                    <option value="0x30">0x30</option>
+                    <option value="0x40">0x40</option>
+                    <option value="0x50">0x50</option>
+                    <option value="0x60">0x60</option>
+                    <option value="0x70" selected>0x70</option>
+                    <option value="0x80">0x80</option>
+                    <option value="0x90">0x90</option>
+                    <option value="0xA0">0xA0</option>
+                    <option value="0xB0">0xB0</option>
+                    <option value="0xC0">0xC0</option>
+                    <option value="0xD0">0xD0</option>
+                    <option value="0xE0">0xE0</option>
+                    <option value="0xF0">0xF0</option>
+                </select>
+                <div class="binary-display" id="targetBinary">0000</div>
+                <div class="bit-labels">76543210</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header">
+        <p>Сhoose source port or destination port, jumper configuration will be updated automatically.
+            You can also click on jumper to toggle its state.</p>
+
+        <p>"INV" means address bit is inverted, "PASS THRU" means bit is passed through as-is.</p>
+        <p>
+            The "source/target" ports represent a logical mapping:
+            we're remapping the board's port to a different address, 
+            but electrically it's the reverse - we're selectively
+            inverting address lines (A7-A4) controlled by the Zeal 8-bit
+            computer to make the board think it's working with
+            the same port as before.</p>
+    </div>
+
+    <script>
+        function hexToInt(hexString) {
+            return parseInt(hexString, 16);
+        }
+
+        function updateBinaryDisplay(port, elementId) {
+            const portValue = hexToInt(port);
+            const upperNibble = (portValue >> 4) & 0x0F;
+            const binaryString = upperNibble.toString(2).padStart(4, '0') + 'xxxx';
+            document.getElementById(elementId).textContent = binaryString;
+        }
+
+        function calculateTargetFromJumpers() {
+            const sourcePort = hexToInt(document.getElementById('sourcePort').value);
+            const sourceBits = (sourcePort >> 4) & 0x0F;
+
+            const jumpers = ['jp1', 'jp2', 'jp3', 'jp4'];
+            const bitPositions = [3, 2, 1, 0];
+
+            let targetBits = 0;
+            jumpers.forEach((jumperId, index) => {
+                const bitPos = bitPositions[index];
+                const cap = document.getElementById(jumperId + '-cap');
+                const sourceBit = (sourceBits >> bitPos) & 1;
+
+                let targetBit;
+                if (cap.classList.contains('inverted')) {
+                    targetBit = sourceBit ^ 1; // Invert the bit
+                } else {
+                    targetBit = sourceBit; // Keep the bit
+                }
+
+                targetBits |= (targetBit << bitPos);
+            });
+
+            const targetPort = '0x' + (targetBits * 16).toString(16).toUpperCase().padStart(2, '0');
+            document.getElementById('targetPort').value = targetPort;
+            updateBinaryDisplay(targetPort, 'targetBinary');
+        }
+
+        function updateJumperConfiguration() {
+            const sourcePort = hexToInt(document.getElementById('sourcePort').value);
+            const targetPort = hexToInt(document.getElementById('targetPort').value);
+
+            updateBinaryDisplay(document.getElementById('sourcePort').value, 'sourceBinary');
+            updateBinaryDisplay(document.getElementById('targetPort').value, 'targetBinary');
+
+            const sourceBits = (sourcePort >> 4) & 0x0F;
+            const targetBits = (targetPort >> 4) & 0x0F;
+
+            const jumpers = ['jp1', 'jp2', 'jp3', 'jp4'];
+            const bitPositions = [3, 2, 1, 0];
+
+            jumpers.forEach((jumperId, index) => {
+                const bitPos = bitPositions[index];
+                const sourceBit = (sourceBits >> bitPos) & 1;
+                const targetBit = (targetBits >> bitPos) & 1;
+
+                const cap = document.getElementById(jumperId + '-cap');
+
+                if (sourceBit !== targetBit) {
+                    cap.classList.remove('normal');
+                    cap.classList.add('inverted');
+                } else {
+                    cap.classList.remove('inverted');
+                    cap.classList.add('normal');
+                }
+            });
+        }
+
+        document.getElementById('sourcePort').addEventListener('change', updateJumperConfiguration);
+        document.getElementById('targetPort').addEventListener('change', updateJumperConfiguration);
+
+        document.querySelectorAll('.jumper').forEach(jumper => {
+            jumper.addEventListener('click', function () {
+                const jumperId = this.dataset.jumper;
+                const cap = document.getElementById(jumperId + '-cap');
+
+                if (cap.classList.contains('normal')) {
+                    cap.classList.remove('normal');
+                    cap.classList.add('inverted');
+                } else {
+                    cap.classList.remove('inverted');
+                    cap.classList.add('normal');
+                }
+                calculateTargetFromJumpers();
+            });
+        });
+
+        updateJumperConfiguration();
+    </script>
+</body>
+
+</html>
